@@ -159,15 +159,15 @@ class TMoohIManager(TMoohIStatTrack):
 
     def updateStatus(self):
         cnt = 0
-        while not self.quitting:
-            if cnt%10==0:
-                try:
-                    #serialized = self._statsTracker.update(self.serialize())
-                    serialized = self.serialize()
-                    self.parent.websocketserver.factory.neweststatus = serialized
-                    self.logger.log(1,MoohLog.statusmessage(serialized))
-                except Exception:
-                    self.logger.exception()
-            cnt += 1
-            time.sleep(1)
+        # while not self.quitting:
+        #     if cnt%10==0:
+        #         try:
+        #             #serialized = self._statsTracker.update(self.serialize())
+        #             serialized = self.serialize()
+        #             self.parent.websocketserver.factory.neweststatus = serialized
+        #             self.logger.log(1,MoohLog.statusmessage(serialized))
+        #         except Exception:
+        #             self.logger.exception()
+        #     cnt += 1
+        #     time.sleep(1)
         #self._updatestatustimer.start()

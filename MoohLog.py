@@ -32,7 +32,7 @@ class MoohLogger(object):
     def exception(self):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         self.error(eventmessage("exception","".join(traceback.format_exception(exc_type, exc_value,exc_traceback))))
-        
+
 class logwriter(object):
     def __init__(self):
         self.filters = [{}]
@@ -41,8 +41,8 @@ class logwriter(object):
             self.inner_write(message)
     def inner_write(self,message):
         raise NotImplementedError
-        
-        
+
+
 class filewriter(logwriter):
     def __init__(self,fileformat):
         super(filewriter,self).__init__()
@@ -87,21 +87,21 @@ def filter_value(key,val,data):
     invert = key[0] == "!"
     if invert:
         key = key[1:]
-    
+
     try:
         key_name, query = key.rsplit("__",1)
     except Exception:
         key_name = key
         query = "exact"
-        
+
     keys = key_name.split(".")
-    
+
     try:
         for k in keys:
             data = data[k]
     except Exception:
         return invert
-    
+
     try:
         return MOOHLOGFILTERS[query](data,val) ^ invert
     except Exception:
@@ -128,23 +128,23 @@ class logmessage(object):
     def __init__(self,level=0):
         self.level = level
         self.type = "generic"
-    
+
     def meets_filter(self,filters):
         return filter_dict(self.serialize(), filters)
-    
+
     def inner_str(self):
         raise NotImplementedError
-    
+
     def __str__(self):
         levelname = ""
-        maxl = -10
+        maxl = 10
         for l,n in MoohLogger.LEVELS.items():
             if l<=self.level:
                 if l>maxl:
                     levelname = "[%s] "%(n,)
                     maxl = l
         return levelname+self.inner_str()
-    
+
     def serialize(self):
         return self.__dict__
 
@@ -157,15 +157,15 @@ class chatmessage(logmessage):
         self.nick = nick
         self.message = message
         self.type = "chat"
-    
+
     def inner_str(self):
         return "[{server}] #{channel} <{nick}>: {message}".format(
             server = self.server,
             channel = self.channel,
             nick = self.nickname,
-            message = self.message 
+            message = self.message
         )
-        
+
 def reploauth(m):
     return "oauth:(%d)"%(len(m.group(1)),)
 def reploauth_token(m):
@@ -176,7 +176,7 @@ class eventmessage(logmessage):
         self.message = re.sub("oauth:([a-z0-9]+)",reploauth,message)
         self.message = re.sub("oauth_token=([a-z0-9]+)",reploauth_token,self.message)
         self.type = "event"
-    
+
     def inner_str(self):
         return "[%s] %s"%(self.event,self.message)
 
@@ -185,7 +185,7 @@ class statusmessage(logmessage):
     def __init__(self,stats):
         self.data = stats
         self.type = "status"
-    
+
     def inner_str(self):
         return json.dumps(self.data)
 
@@ -198,9 +198,9 @@ if __name__ == "__main__":
     c.filters = [{"event":"test","level__ge":10}]
     #c.filters.append({"bro_lt":"1337"})
     l.writers.append(c)
-    
+
     l.debug(eventmessage("test","testing events"))
     l.error(eventmessage("test","testing events"))
     l.fatal(eventmessage("test","testing events"))
-    
+
     l.info(statusmessage({"dank":"memes","bro":420}))

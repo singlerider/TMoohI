@@ -17,13 +17,13 @@ from TMoohIStatTrack import TMoohIStatTrack
 from MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
 
 
-# This is the main TMoohIServer class. It manages the different clients coming in, the MultiBotManager, the control channel 
+# This is the main TMoohIServer class. It manages the different clients coming in, the MultiBotManager, the control channel
 # as well as initialisation and message processing.
 # Note that it will not interact with IRC directly
 class TMoohIServer():
     def __init__(self,config):
         self.BuildInfo = BuildCounter.getVersionInfo("TMoohI",["py","html","css","js"])
-        
+
         self.quitting = False
         #config options
         # host+port: where TMoohI listens for client connections on
@@ -31,7 +31,7 @@ class TMoohIServer():
         # logfile: file to log status messages to
         # status-: status files in the formats specified
         # ref-channel-: channel to check chat_properties for
-        
+
         self.config = {
             "port": 6667,
             "host":"localhost",
@@ -44,40 +44,40 @@ class TMoohIServer():
             "cluster-seperator": "@",
 			"channels-per-connection": 10
         }
-        
+
         for k in config.__dict__:
             if k in ["servers"]:
                 self.config[k] = json.loads(config.__dict__[k])
             else:
                 self.config[k] = config.__dict__[k]
-        
+
         if config.config:
             with open(config.config) as f:
                 data = yaml.load(f)
                 for k in data:
                     self.config[k] = data[k]
-        
+
         self.logger = MoohLogger()
         self.filelogger = filewriter(self.config["logfile"])
         self.filelogger.filters = [{ "level__ge": MoohLogger.DEBUG }]
         self.consolelogger = consolewriter()
         self.consolelogger.filters = [{ "level__ge": MoohLogger.DEBUG }]
-        self.logger.writers.append(self.filelogger)
+        # self.logger.writers.append(self.filelogger)
         self.logger.writers.append(self.consolelogger)
         self.logger.info(eventmessage("general","%s loaded"%(self.BuildInfo,)))
         self.logger.info(eventmessage("general","Starting TMoohI server on port %d - CTRL+C to stop"%(self.config["port"],)))
-        
+
         self.websocketserver = TMoohIWebSocketLogger.TMoohIWebsocketServer(self.logger, self.config["websockethost"], self.config["websocketport"])
-        
+
         self.manager = TMoohIManager.TMoohIManager(self)
-    
+
     def quit(self):
         self.quitting = True
         self.manager.quit()
         self.websocketserver.quit()
         self.server.shutdown()
         self.server.server_close()
-        
+
     def run(self):
         self.server = ThreadedTCPServer((self.config["host"],self.config["port"]), TMoohITCPHandler)
         self.server.daemon_threads = True
@@ -170,7 +170,7 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
             self.server.TMoohIParent.logger.debug(eventmessage("client","Client %s disconnected (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
         else:
             self.server.TMoohIParent.logger.debug(eventmessage("client","Client %s disconnected (sock ID %d)"%(self.client_address[0],self.client_address[1])))
-    
+
     def getUptime(self):
         return time.time()-self.starttime
     def getCommandsSent(self):
